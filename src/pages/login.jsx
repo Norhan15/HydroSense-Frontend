@@ -9,10 +9,26 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import AnotherImage from '../img/Hydrosense.png';
+import Hydrosense from '../img/Hydrosense.png';
 import Grow from '@mui/material/Grow';
 
-const defaultTheme = createTheme();
+const defaultTheme = createTheme({
+  typography: {
+    h4: {
+      fontFamily: 'Suez One, serif',
+      fontSize: '3.2rem',
+      fontWeight: 900, // Peso normal para un estilo lleno
+      color: '#0B2023',
+    },
+    h6: {
+      fontFamily: 'Suez One, serif',
+      fontSize: '1.8rem',
+      fontWeight: 900, // Peso normal para un estilo lleno
+      color: '#0B2023',
+    },
+  },
+});
+
 
 export default function SignInSide() {
   const navigate = useNavigate();
@@ -20,7 +36,7 @@ export default function SignInSide() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [checked, setChecked] = useState(true); // Estado para controlar las animaciones
+  const [checked] = useState(true);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -39,28 +55,28 @@ export default function SignInSide() {
   return (
     <ThemeProvider theme={defaultTheme}>
       <Grid container component="main" sx={{ height: '100vh' }}>
-        <Grid
-          item
-          xs={false}
-          sm={4}
-          md={7}
-          sx={{
-            backgroundColor: '#049DD9',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Grow in={checked} timeout={1000}>
-            <Typography variant="h4" component="div" sx={{ color: '#fff', mb: 2 }}>
+      <Grid
+      item
+      xs={false}
+      sm={4}
+      md={7}
+      sx={{
+        background: 'radial-gradient(circle at top left, #6BE5F2, #049DD9, #6BE5F2, #03588C)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+          <Grow in={checked} timeout={2000}>
+            <Typography variant="h4" component="div" sx={{ color: '#0B2023', mb: 2 }}>
               Bienvenido a Hydrosense
             </Typography>
           </Grow>
-          <Grow in={checked} timeout={2000}>
+          <Grow in={checked} timeout={3000}>
             <Box
               component="img"
-              src={AnotherImage}
+              src={Hydrosense}
               alt="Hydrosense Logo"
               sx={{
                 width: '50%',
@@ -70,8 +86,8 @@ export default function SignInSide() {
               }}
             />
           </Grow>
-          <Grow in={checked} timeout={3000}>
-            <Typography variant="h6" component="div" sx={{ color: '#fff', mt: 2 }}>
+          <Grow in={checked} timeout={5000}>
+            <Typography variant="h6" component="div" sx={{ color: '#0B2023', mt: 2 }}>
               Tu solución en sistemas de gestión de bombas de agua
             </Typography>
           </Grow>
