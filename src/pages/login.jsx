@@ -9,7 +9,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import ElectritrackImage from '../img/logo.svg';
+import AnotherImage from '../img/Hydrosense.png';
+import Grow from '@mui/material/Grow';
 
 const defaultTheme = createTheme();
 
@@ -19,28 +20,15 @@ export default function SignInSide() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = useState(true); // Estado para controlar las animaciones
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     setLoading(true);
     try {
-      console.log(user, password);
-      const response = await fetch('http://54.145.186.137:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user, password }),
-      });
-      console.log('Response:', response);
-      const data = await response.json();
-      console.log('Data:', data);
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        navigate('/menu');
-      } else {
-        setError(data.message || 'Error al iniciar sesión. Inténtalo de nuevo más tarde');
-      }
+      console.log('Usuario:', user);
+      console.log('Contraseña:', password);
+      navigate('/menu');
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       setError('Error al iniciar sesión. Inténtalo de nuevo más tarde');
@@ -57,13 +45,37 @@ export default function SignInSide() {
           sm={4}
           md={7}
           sx={{
-            backgroundColor: 'DFE1E2',
-            backgroundImage: `url(${ElectritrackImage})`,
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '100%',
-            backgroundPosition: 'center',
+            backgroundColor: '#049DD9',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
-        />
+        >
+          <Grow in={checked} timeout={1000}>
+            <Typography variant="h4" component="div" sx={{ color: '#fff', mb: 2 }}>
+              Bienvenido a Hydrosense
+            </Typography>
+          </Grow>
+          <Grow in={checked} timeout={2000}>
+            <Box
+              component="img"
+              src={AnotherImage}
+              alt="Hydrosense Logo"
+              sx={{
+                width: '50%',
+                height: 'auto',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
+          </Grow>
+          <Grow in={checked} timeout={3000}>
+            <Typography variant="h6" component="div" sx={{ color: '#fff', mt: 2 }}>
+              Tu solución en sistemas de gestión de bombas de agua
+            </Typography>
+          </Grow>
+        </Grid>
         <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square sx={{ backgroundColor: '#E9F1F2' }}>
           <Box
             sx={{
@@ -74,7 +86,7 @@ export default function SignInSide() {
               alignItems: 'center',
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: '#6BE5F2' }}>
+            <Avatar sx={{ m: 1, bgcolor: '#049DD9' }}>
               <LockOutlinedIcon />
             </Avatar>
             <Typography component="h1" variant="h5">
@@ -86,8 +98,8 @@ export default function SignInSide() {
                 required
                 fullWidth
                 id="user"
-                label="Correo"
-                name="email"
+                label="Usuario"
+                name="user"
                 autoComplete="Usuario"
                 autoFocus
                 value={user}
@@ -109,7 +121,7 @@ export default function SignInSide() {
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{ mt: 3, mb: 2 }}
+                sx={{ mt: 3, mb: 2, bgcolor: '#049DD9' }}
                 disabled={loading}
               >
                 {loading ? 'Cargando...' : 'Iniciar sesión'}
