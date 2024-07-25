@@ -22,10 +22,6 @@ import AddIcon from '@mui/icons-material/Add';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Button, Snackbar, Alert } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import axios from 'axios';
-import io from 'socket.io-client';
-
-// Configura el cliente de socket.io
-const socket = io('http://localhost:4000');
 
 function createData(id, name, email, password, position, company_ref) {
   return { id, name, email, password, position, company_ref };
@@ -212,11 +208,6 @@ export default function EnhancedTable() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    // Conectar al socket
-    socket.on('user added', (newUser) => {
-      setRows((prevRows) => [...prevRows, createData(newUser.id, newUser.name, newUser.email, newUser.password, newUser.position, newUser.company_ref)]);
-    });
-
     // Obtener datos iniciales
     const fetchData = async () => {
       try {
@@ -228,10 +219,6 @@ export default function EnhancedTable() {
     };
 
     fetchData();
-
-    return () => {
-      socket.off('user added');
-    };
   }, []);
 
   const handleRequestSort = (event, property) => {
@@ -270,40 +257,48 @@ export default function EnhancedTable() {
     setPage(0);
   };
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
-  const validateForm = () => {
-    let errors = {};
-    if (!newUser.name) errors.name = 'El nombre es obligatorio';
-    if (!newUser.email) errors.email = 'El correo es obligatorio';
-    if (!newUser.password) errors.password = 'La contraseña es obligatoria';
-    if (!newUser.position) errors.position = 'El rol es obligatorio';
-    if (!newUser.company_ref) errors.company_ref = 'La referencia de empresa es obligatoria';
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+  const handleDenseChange = (event) => {
+    setDense(event.target.checked);
   };
 
-  const handleAddUser = async () => {
-    if (validateForm()) {
+  const handleOpen = () => setOpen(true);
+
+  const handleClose = () => {
+    setOpen(false);
+    setNewUser({ name: '', email: '', password: '', position: '', company_ref: '' });
+    setFormErrors({});
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setNewUser((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const errors = {};
+
+    if (!newUser.name) errors.name = 'Nombre es requerido';
+    if (!newUser.email) errors.email = 'Correo es requerido';
+    if (!newUser.password) errors.password = 'Contraseña es requerida';
+    if (!newUser.position) errors.position = 'Rol es requerido';
+    if (!newUser.company_ref) errors.company_ref = 'Referencia de empresa es requerida';
+
+    if (Object.keys(errors).length === 0) {
       try {
-        const response = await axios.post('https://hydrosense-autentificador.integrador.xyz:3000/app/user/', newUser);
-        setSnackbarMessage('Usuario agregado con éxito');
+        await axios.post('https://hydrosense-autentificador.integrador.xyz:3000/app/user/company/1', newUser);
+        setSnackbarMessage('Usuario agregado exitosamente');
         setOpenSnackbar(true);
-        setNewUser({ name: '', email: '', password: '', position: '', company_ref: '' });
-        setOpen(false);
+        handleClose();
       } catch (error) {
         console.error('Error adding user:', error);
-        setSnackbarMessage('Error al agregar usuario');
-        setOpenSnackbar(true);
       }
+    } else {
+      setFormErrors(errors);
     }
   };
 
   const handleSnackbarClose = () => setOpenSnackbar(false);
-
-  const isSelected = (id) => selected.indexOf(id) !== -1;
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   return (
     <>
@@ -311,25 +306,23 @@ export default function EnhancedTable() {
         <EnhancedTableToolbar numSelected={selected.length} handleOpen={handleOpen} />
         <TableContainer>
           <Table
-            sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitle"
+            sx={{ minWidth: 750, border: '2px solid #049DD9' }}
             size={dense ? 'small' : 'medium'}
           >
             <EnhancedTableHead
+              numSelected={selected.length}
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
-              numSelected={selected.length}
-              onSelectAllClick={handleSelectAllClick}
               rowCount={rows.length}
+              onSelectAllClick={handleSelectAllClick}
               rows={rows}
             />
             <TableBody>
               {stableSort(rows, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => {
-                  const isItemSelected = isSelected(row.id);
-                  const labelId = `enhanced-table-checkbox-${row.id}`;
+                  const isItemSelected = selected.indexOf(row.id) !== -1;
 
                   return (
                     <TableRow
@@ -340,15 +333,16 @@ export default function EnhancedTable() {
                       tabIndex={-1}
                       key={row.id}
                       selected={isItemSelected}
+                      sx={{ borderBottom: '1px solid #e0e0e0' }}
                     >
                       <TableCell padding="checkbox">
                         <Checkbox
                           color="primary"
                           checked={isItemSelected}
-                          inputProps={{ 'aria-labelledby': labelId }}
+                          inputProps={{ 'aria-labelledby': row.name }}
                         />
                       </TableCell>
-                      <TableCell component="th" id={labelId} scope="row" padding="none">
+                      <TableCell component="th" id={row.name} scope="row" padding="none">
                         {row.name}
                       </TableCell>
                       <TableCell>{row.email}</TableCell>
@@ -357,13 +351,11 @@ export default function EnhancedTable() {
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: (dense ? 33 : 53) * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
+              {rows.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No hay datos disponibles
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -379,76 +371,79 @@ export default function EnhancedTable() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Agregar Usuario</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Por favor completa los campos para agregar un nuevo usuario.
+            Por favor, ingresa los detalles del nuevo usuario.
           </DialogContentText>
           <TextField
             autoFocus
             margin="dense"
-            id="name"
+            name="name"
             label="Nombre"
             type="text"
             fullWidth
+            variant="standard"
             value={newUser.name}
-            onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+            onChange={handleChange}
             error={!!formErrors.name}
             helperText={formErrors.name}
           />
           <TextField
             margin="dense"
-            id="email"
+            name="email"
             label="Correo"
             type="email"
             fullWidth
+            variant="standard"
             value={newUser.email}
-            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            onChange={handleChange}
             error={!!formErrors.email}
             helperText={formErrors.email}
           />
           <TextField
             margin="dense"
-            id="password"
+            name="password"
             label="Contraseña"
             type="password"
             fullWidth
+            variant="standard"
             value={newUser.password}
-            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+            onChange={handleChange}
             error={!!formErrors.password}
             helperText={formErrors.password}
           />
           <TextField
             margin="dense"
-            id="position"
+            name="position"
             label="Rol"
             type="text"
             fullWidth
+            variant="standard"
             value={newUser.position}
-            onChange={(e) => setNewUser({ ...newUser, position: e.target.value })}
+            onChange={handleChange}
             error={!!formErrors.position}
             helperText={formErrors.position}
           />
           <TextField
             margin="dense"
-            id="company_ref"
+            name="company_ref"
             label="Referencia de Empresa"
             type="text"
             fullWidth
+            variant="standard"
             value={newUser.company_ref}
-            onChange={(e) => setNewUser({ ...newUser, company_ref: e.target.value })}
+            onChange={handleChange}
             error={!!formErrors.company_ref}
             helperText={formErrors.company_ref}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancelar</Button>
-          <Button onClick={handleAddUser}>Agregar</Button>
+          <Button onClick={handleSubmit}>Agregar</Button>
         </DialogActions>
       </Dialog>
-
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
           {snackbarMessage}
