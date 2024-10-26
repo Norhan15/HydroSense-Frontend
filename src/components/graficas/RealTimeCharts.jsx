@@ -8,7 +8,7 @@ const RealTimeCharts = () => {
   const [temperatureMessage, setTemperatureMessage] = useState('');
 
   useEffect(() => {
-    const socket = io('http://44.199.91.75:8080', { transports: ['websocket'] });
+    const socket = io('http://52.54.253.177:8080', { transports: ['websocket'] });
 
     socket.on('connect', () => {
       console.log('Connected to WebSocket server');

@@ -126,7 +126,7 @@ export default function SignInSide({ onLogin }) {
     }
 
     try {
-      const response = await axios.post('https://hydrosense-autentificador.integrador.xyz:3000/app/auth/login', {
+      const response = await axios.post('http://23.23.72.57:3000/app/auth/login', {
         email,
         password,
       });
@@ -194,7 +194,7 @@ export default function SignInSide({ onLogin }) {
     }
 
     try {
-      const response = await axios.post('https://hydrosense-autentificador.integrador.xyz:3000/app/company/', {
+      const response = await axios.post('http://23.23.72.57:3000/app/company/', {
         name: newName,
         email: newEmail,
         password: newPassword,
